@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>숫자 맞추기 게임</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: linear-gradient(120deg, #0f2027, #203a43, #2c5364);
+      font-family: 'Arial', sans-serif;
+      color: white;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .game-container {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+      width: 320px;
+      backdrop-filter: blur(6px);
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    #attemptCounter {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #f9f9f9;
+    }
+
+    input[type="number"] {
+      padding: 10px;
+      font-size: 16px;
+      width: 80%;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    .message {
+      margin-top: 15px;
+      font-size: 18px;
+    }
+
+    .win {
+      color: #00ff99;
+    }
+
+    .lose {
+      color: #ff4c4c;
+    }
+
+    /* 별 효과 */
+    .stars {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 2s infinite ease-in-out;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 0.2; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 별 배경 -->
+  <div class="stars"></div>
+
+  <!-- 게임 UI -->
+  <div class="game-container">
+    <h1>숫자 맞추기 게임</h1>
+    <p id="attemptCounter">현재 시도: 0 / 10</p>
+    <p>1부터 100 사이의 숫자를 맞춰보세요!</p>
+    <input type="number" id="userGuess" min="1" max="100" placeholder="숫자 입력" autocomplete="off" />
+    <button onclick="checkGuess()">추측하기</button>
+    <p id="message" class="message"></p>
+  </div>
+
+  <script>
+    // 별 생성
+    const starsContainer = document.querySelector('.stars');
+    for (let i = 0; i < 100; i++) {
+      const star = document.createElement('div');
+      star.classList.add('star');
+      star.style.top = Math.random() * 100 + '%';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.animationDuration = (Math.random() * 2 + 1) + 's';
+      starsContainer.appendChild(star);
+    }
+
+    let randomNumber = Math.floor(Math.random() * 100) + 1;
+    let attempts = 0;
+    const maxAttempts = 10;
+    let gameOver = false;
+
+    const input = document.getElementById('userGuess');
+    const messageElement = document.getElementById('message');
+    const attemptCounter = document.getElementById('attemptCounter');
+
+    function updateCounter() {
+      attemptCounter.textContent = `현재 시도: ${attempts} / ${maxAttempts}`;
+    }
+
+    function checkGuess() {
+      if (gameOver) return;
+
+      const userGuess = parseInt(input.value);
+      if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
+        messageElement.textContent = "1부터 100 사이의 숫자를 입력해주세요!";
+        messageElement.classList.remove("win", "lose");
+        return;
+      }
+
+      attempts++;
+      updateCounter();
+
+      if (userGuess === randomNumber) {
+        messageElement.textContent = `정답! ${attempts}번 만에 맞췄습니다.`;
+        messageElement.classList.add("win");
+        messageElement.classList.remove("lose");
+        gameOver = true;
+      } else if (attempts >= maxAttempts) {
+        messageElement.textContent = `실패! 정답은 ${randomNumber}였습니다.`;
+        messageElement.classList.add("lose");
+        gameOver = true;
+      } else {
+        messageElement.textContent = userGuess < randomNumber
+          ? "너무 낮아요! 다시 시도해보세요."
+          : "너무 높아요! 다시 시도해보세요.";
+        messageElement.classList.remove("win", "lose");
+      }
+
+      input.value = '';
+    }
+
+    // 엔터 키 처리: 맞힌 뒤 엔터 누르면 리셋
+    document.addEventListener("keydown", function(e) {
+      if (gameOver && e.key === "Enter") {
+        resetGame();
+      } else if (!gameOver && e.key === "Enter") {
+        checkGuess();
+      }
+    });
+
+    function resetGame() {
+      randomNumber = Math.floor(Math.random() * 100) + 1;
+      attempts = 0;
+      gameOver = false;
+      updateCounter();
+      messageElement.textContent = '';
+      messageElement.classList.remove("win", "lose");
+      input.value = '';
+      input.focus();
+    }
+
+    updateCounter();
+    input.focus();
+  </script>
+</body>
+</html>
